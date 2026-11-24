@@ -414,6 +414,9 @@ input[aria-invalid="true"] {
   gap: 10px;
   margin-top: 8px;
 }
+.field.compact {
+  margin: 6px 0 0;
+}
 .password-fields .error-text {
   margin: 0;
 }

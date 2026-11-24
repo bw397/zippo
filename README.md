@@ -33,6 +33,8 @@ Upload `dist/` to any static host (Netlify, GitHub Pages, Cloudflare Pages, S3â€
 
 ## Notes
 
-- Password-protected zips use AES-256. 7-Zip, WinRAR, Keka and most Android file managers open them. The built-in Windows Explorer and macOS Archive Utility do not support AES zips.
+- Password-protected zips offer two encryption styles:
+  - **AES-256** (default): strong. 7-Zip, WinRAR, Keka and most Android file managers open it; the built-in Windows Explorer and macOS Archive Utility don't.
+  - **ZipCrypto**: opens in Windows Explorer and macOS Archive Utility, but it is weak and can be cracked.
 - `.tar.gz` has no encryption, so the password option is disabled for that format.
 - Archives are built in memory, so very large sets (multiple GB) may hit mobile browser memory limits.

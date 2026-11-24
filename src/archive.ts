@@ -2,11 +2,14 @@ import { BlobReader, BlobWriter, ZipWriter } from "@zip.js/zip.js";
 import type { StoredFile } from "./db";
 
 export type ArchiveFormat = "zip" | "tar.gz";
+/** "aes" = AES-256 (strong); "zipcrypto" = legacy, weak, but opens in Windows Explorer / macOS. */
+export type ZipEncryption = "aes" | "zipcrypto";
 
 export interface ArchiveOptions {
   format: ArchiveFormat;
   /** Only honoured for zip – tar.gz has no encryption. */
   password?: string;
+  encryption?: ZipEncryption;
   onProgress?: (fraction: number) => void;
 }
 
@@ -33,7 +36,8 @@ async function createZip(files: StoredFile[], opts: ArchiveOptions): Promise<Blo
   const total = files.reduce((n, f) => n + f.size, 0) || 1;
   const zip = new ZipWriter(new BlobWriter("application/zip"), {
     password: opts.password || undefined,
-    encryptionStrength: 3, // AES-256
+    zipCrypto: opts.encryption === "zipcrypto",
+    encryptionStrength: 3, // AES-256 (ignored for ZipCrypto)
   });
   const names = uniqueNames(files);
   let done = 0;

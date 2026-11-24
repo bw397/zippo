@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { createArchive, downloadBlob, type ArchiveFormat } from "./archive";
+import { createArchive, downloadBlob, type ArchiveFormat, type ZipEncryption } from "./archive";
 import { clearFiles, deleteFile, listFiles, putFile, type StoredFile } from "./db";
 import { makeThumbnail } from "./thumbnail";
 import "./index.css";
@@ -82,6 +82,7 @@ function CreateSheet({ files, onClose }: CreateSheetProps) {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [encryption, setEncryption] = useState<ZipEncryption>("aes");
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<{ name: string; size: number }>();
@@ -107,6 +108,7 @@ function CreateSheet({ files, onClose }: CreateSheetProps) {
       const blob = await createArchive(files, {
         format,
         password: passwordActive ? password : undefined,
+        encryption,
         onProgress: f => setProgress(Math.min(1, f)),
       });
       const base = (name.trim() || defaultArchiveName()).replace(/\.(zip|tar\.gz|tgz)$/i, "");
@@ -213,7 +215,34 @@ function CreateSheet({ files, onClose }: CreateSheetProps) {
                 <input type="checkbox" checked={showPassword} onChange={e => setShowPassword(e.target.checked)} />
                 <span>Show password</span>
               </label>
-              <p className="hint">Uses AES-256. Open it with 7-Zip, WinRAR, Keka, or most Android file managers.</p>
+              <fieldset className="field compact">
+                <legend>Encryption</legend>
+                <div className="segmented">
+                  {(
+                    [
+                      ["aes", "AES-256"],
+                      ["zipcrypto", "ZipCrypto"],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <label key={value} className={encryption === value ? "active" : ""}>
+                      <input
+                        type="radio"
+                        name="encryption"
+                        value={value}
+                        checked={encryption === value}
+                        onChange={() => setEncryption(value)}
+                        disabled={creating}
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+                <p className="hint">
+                  {encryption === "aes"
+                    ? "Strong encryption. Opens in 7-Zip, WinRAR, Keka and most Android file managers, but not the built-in Windows or Mac zip tools."
+                    : "Opens in the built-in Windows and Mac zip tools, but the encryption is weak and can be cracked. Don’t use it for anything sensitive."}
+                </p>
+              </fieldset>
             </div>
           )}
         </div>
